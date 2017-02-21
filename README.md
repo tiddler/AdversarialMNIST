@@ -8,11 +8,32 @@ This is my solution to "500px Machine Learning Engineer Intern - Tech Challenge"
 * Tensorflow 1.0
 * Numpy 1.11.3
 * Matplotlib 2.0.0
-* Seaborn 0.71 (Optional)
+* Seaborn 0.71
 
 #### Description
 
 Create adversarial images to fool a MNIST classifier in TensorFlow.
+
+You can find experiments result in the `notebook` folder
+
+In `src` folder, `generate_model.py` is used for training CNN model and dump model to target path
+
+Usage:
+
+```
+python generate_model.py [--max_steps] [--learning_rate] [--dropout] [--data_dir]
+                         [--log_dir] [--model_path]
+```
+
+`generate_adversarial.py` contains function that consumes a image list(img_list) and a desired class(target_class) , therefore produces the adversarial images that can fool the model.
+
+<img src="/img/adversarial_versus.png" width="500">
+
+some iteration processes:
+
+![](/img/adversarial0_iter.png)
+
+![](/img/adversarial4_iter.png)
 
 #### To Do
 
