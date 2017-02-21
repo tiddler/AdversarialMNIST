@@ -18,9 +18,9 @@ There are two ways to fool a CNN model. The first one is raised by Ian Goodfello
 as the fast gradient sign method), the other one is adopted by Papernot et al (also know as Jacobian-based saliency map). Here we first implement the easier one: fast gradient method.
 
 This method can be simplified as
-$$
-\delta _{x}=\varepsilon sgn(\nabla _{x}G\left( F,x,y\right)
-$$
+
+<img src="/img/fg_euqtion.png" width="250">
+
 We tested two update strategies, one is to simply take the sign of gradient and perform uniformly updates for all pixels and the other is to use gradient value as parts of step size. It is easy to know that if the gradient of a pixel is large, we only need to add a little wiggle, which will bring enough influence on the prediction. Therefore, it will give us a less noisy adversarial image. We add a L2-norm -like loss to evaluate the Delta, a small loss means we add a very little perturbation to original image, making the adversarial image unnoticeable for humans. 
 
 The experiment results support that -- updating by gradient value gives us a less L2-norm-like loss.
