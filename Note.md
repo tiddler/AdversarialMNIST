@@ -14,6 +14,8 @@
 
 #### Practical Black-Box Attacks against Deep Learning Systems using Adversarial Examples
 
+* I was thinking that we can add noise in the gradient so that attacker can only get useless gradient. However, this paper says such "Gradient masking" is not so helpful, the attacker has a very good strategy for guessing where the holes in the defense are. The attacker can train their own model, a smooth model that has a gradient, make adversarial examples for their model, and then deploy those adversarial examples against our non-smooth model. 
+
 #### Deep Neural Networks are Easily Fooled: High Confidence Predictions for Unrecognizable Images
 
 #### Explaining and Harnessing Adversarial Examples

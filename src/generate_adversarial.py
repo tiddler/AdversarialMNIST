@@ -15,7 +15,8 @@
 """Load previous CNN model for MNIST and generate adversarial image
 
 For the details of adversarial image, please refer to Ian J. Goodfellow et al.
-    Explaining and Harnessing Adversarial Examples (https://arxiv.org/abs/1412.6572)
+    Explaining and Harnessing Adversarial Examples 
+    (https://arxiv.org/abs/1412.6572)
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -29,6 +30,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def build_graph():
+  """build the same graph as previous dumped model
+
+  Args:
+    None
+
+  Returns:
+    sess          : tf.InteractiveSession()
+    x             : tf.placeholder()
+    y_            : tf.placeholder()
+    y_pred,       : tf.Variable()
+    keep_prob,    : tf.placeholder()
+    cross_entropy : tf.Variable()
+
+  Example:
+    >>> build_graph()
+  """
   x = tf.placeholder(tf.float32, shape=[None, 784])
   y_ = tf.placeholder(tf.float32, shape=[None, 10])
 
@@ -89,26 +106,62 @@ def build_graph():
   sess = tf.InteractiveSession()
   return sess, x, y_, y_pred, keep_prob, cross_entropy
 
-def generate_adversarial(model_path, img_list, target_class, eta=0.001, threshold=0.99, 
-                        save_path=None, file_name='adversarial', verbose=0):
+def generate_adversarial(model_path, img_list, target_class, eta=0.001, 
+        threshold=0.99, save_path=None, file_name='adversarial', verbose=0):
+  """generate adversarial images, note that gradient and some parts of 
+    graph are needed during iterations, hence I decide not to pack some codes 
+    into helper function
 
+  Args:
+    tensor_in: `Tensor`, input tensor.
+    other_tensor_in: `Tensor`, same shape as `tensor_in`, other input tensor.
+    my_param: `float`, coefficient for `tensor_in`.
+    other_param: `float`, coefficient for `other_tensor_in`.
+    output_collections: `tuple` of `string`s, name of the collection to
+                        collect result of this op.
+    name: `string`, name of the operation.
+
+    model_path: `string`, the path to previous model
+    img_list: `string`, the img list that need to generate adversarial images
+    target_class: `int`, the wanted label
+    eta: `float`, learning rate (or step size), default: 0.001
+    threshold: `float`, the confidence we want to fool, default: 0.99 (99%)
+    save_path: `string`, the path to img/ folder
+    file_name: `string`, the name for saving file, default:'adversarial'
+    verbose: `int`, verbose=0, omit the training graphs, default: 0
+
+  Returns:
+    `np.array`: the final adversarial image for each img in img_list
+
+  Example:
+    >>> generate_adversarial(model_path='../model/MNIST.ckpt', 
+                img_list=img_list, target_class=6, eta=0.01, threshold=0.99, 
+                save_path='../img/', file_name='adversarial', verbose=1)
+    np.ndarray(...)
+  """
+  # buld a gragh with same constructure
   sess, x, y_, y_pred, keep_prob, cross_entropy = build_graph()
 
+  # load model from `model_path`
   sess.run(tf.global_variables_initializer())
   tf.train.Saver().restore(sess, model_path)
   print('load model from', model_path)
   
+  # define two `tf.Variable` for output prediction label and confidence 
   prediction=tf.argmax(y_pred,1)
   probabilities=y_pred
 
+  # use tf.gradients() to compute the gradient for each pixel
   img_gradient = tf.gradients(cross_entropy, x)[0]
 
+  # the returning imgs
   adversarial_img_list = list()
 
   # generate versus figure
   sns.set_style('white')
   versus_fig = plt.figure(figsize=(9, 40))
 
+  # iter over each img
   for img_index in range(0, img_list.shape[0]):
     adversarial_img = img_list[img_index: img_index+1].copy()
     adversarial_label = np.zeros((1, 10))
@@ -118,38 +171,43 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001, threshol
     iter_num = 0
     prob_history = list()
     while confidence < threshold:
-      gradient = img_gradient.eval(
-          {x: adversarial_img, y_: adversarial_label, keep_prob: 1.0})
-      adversarial_img -= eta * gradient
       probabilities_val = probabilities.eval(feed_dict=
                         {x: adversarial_img, keep_prob: 1.0}, session=sess)
       confidence = probabilities_val[:, 6]
       prob_history.append(probabilities_val[0])
+      
+      gradient = img_gradient.eval(
+          {x: adversarial_img, y_: adversarial_label, keep_prob: 1.0})
+      adversarial_img -= eta * gradient
       iter_num += 1
     print('generate adversarial image after', iter_num, 'iterations')
 
     # generate versus figure
 
-    ax1 = versus_fig.add_subplot(3,10,3*img_index+1)
+    ax1 = versus_fig.add_subplot(10, 3, 3*img_index+1)
     ax1.axis('off')
-    ax1.imshow(img_list[img_index].reshape([28, 28]), interpolation=None, cmap=plt.cm.gray)
-    ax1.title.set_text('Confidence for 2: ' + '{:.4f}'.format(prob_history[0][2]) 
-                      + '\nConfidence for 6: ' + '{:.4f}'.format(prob_history[0][6]))
+    ax1.imshow(img_list[img_index].reshape([28, 28]), 
+              interpolation=None, cmap=plt.cm.gray)
+    ax1.title.set_text(
+          'Confidence for 2: ' + '{:.4f}'.format(prob_history[0][2]) 
+          + '\nConfidence for 6: ' + '{:.4f}'.format(prob_history[0][6]))
 
-    ax2 = versus_fig.add_subplot(3,10,3*img_index+2)
+    ax2 = versus_fig.add_subplot(10, 3, 3*img_index+2)
     ax2.axis('off')
     ax2.imshow((adversarial_img - img_list[img_index]).reshape([28, 28]),
                 interpolation=None, cmap=plt.cm.gray)
     ax2.title.set_text('Delta')
 
-    ax3 = versus_fig.add_subplot(3,10,3*img_index+3)
+    ax3 = versus_fig.add_subplot(10, 3, 3*img_index+3)
     ax3.axis('off')
     ax3.imshow((adversarial_img).reshape([28, 28]), 
                 interpolation=None, cmap=plt.cm.gray)
-    ax3.title.set_text('Confidence for 2: ' + '{:.4f}'.format(prob_history[-1][2]) 
-                      + '\nConfidence for 6: ' + '{:.4f}'.format(prob_history[-1][6]))
+    ax3.title.set_text(
+          'Confidence for 2: ' + '{:.4f}'.format(prob_history[-1][2]) 
+          + '\nConfidence for 6: ' + '{:.4f}'.format(prob_history[-1][6]))
 
-    print("Difference Measure:", np.sum((adversarial_img - img_list[img_index]) ** 2))
+    print("Difference Measure:", 
+                      np.sum((adversarial_img - img_list[img_index]) ** 2))
     adversarial_img_list.append(adversarial_img)
 
     if verbose != 0:
@@ -165,11 +223,11 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001, threshol
           plt.plot(record, color=colors_list[i])
 
       ax.legend([str(x) for x in range(0, 10)], 
-                  loc='center left', bbox_to_anchor=(1.05, 0.5), fontsize=14)
+                  loc='center left', bbox_to_anchor=(1.01, 0.5), fontsize=14)
       ax.set_xlabel('Iteration')
       ax.set_ylabel('Prediction Confidence')
-      fig.tight_layout()
       fig.savefig(save_path + file_name + str(img_index) + '_iter.png')
 
+  versus_fig.tight_layout()
   versus_fig.savefig(save_path + file_name + '_versus.png')
   return np.array(adversarial_img_list)
