@@ -60,16 +60,25 @@ You can find iteration processes in the `img` folder
 
 #### To Do
 
-* [x] Read [Karpathy's blog](http://karpathy.github.io/2015/03/30/breaking-convnets/)
-* [x] Read paper [Deep Neural Networks are Easily Fooled](https://arxiv.org/abs/1412.1897) and [Explaining and Harnessing Adversarial Examples](https://arxiv.org/abs/1412.6572)
-* [x] Go through all details in [Deep MNIST for Experts](https://www.tensorflow.org/get_started/mnist/pros)
-* [x] Here is a [torch implement](https://github.com/e-lab/torch-toolbox/tree/master/Adversarial) for OVERFEAR network (Not so useful)
-* [ ] Time to code ~
+- [x] Read [Karpathy's blog](http://karpathy.github.io/2015/03/30/breaking-convnets/)
+- [x] Read paper [Deep Neural Networks are Easily Fooled](https://arxiv.org/abs/1412.1897) and [Explaining and Harnessing Adversarial Examples](https://arxiv.org/abs/1412.6572)
+- [x] Go through all details in [Deep MNIST for Experts](https://www.tensorflow.org/get_started/mnist/pros)
+- [x] Here is a [torch implement](https://github.com/e-lab/torch-toolbox/tree/master/Adversarial) for OVERFEAR network (Not so useful)
+- [x] Time to code ~
       * [x] Train a common CNN for MNIST
       * [x] generate adversarial images to misclassify any examples of ‘2’ as ‘6’
       * [x] generate adversarial images for any number as any number
-      * [ ] *test SVM, RandomForest, GradientBoost Tree, deeper network for these adversarial images
-      * [ ] what if we add adversarial images in the training set?
-      * [x] *test my handwritten image
-      * [ ] *analyze feature map for conv layer
-      * [ ] *implement Jacobian-based saliency map described in [This paper](https://arxiv.org/abs/1511.07528)
+
+- [ ] There seems to be much of fun to explore~ !
+
+      - [x] Can these images fool other classifier? such as SVM, RandomForest, GradientBoost Tree, or a deeper network
+
+            Actually, no.
+
+      - [ ] what if we add adversarial images in the training set? 
+
+      - [ ] How about one adversarial image for a all images in the same class? i.e. a delta image that can apply to all images so that the CNN will still be fooled.
+
+      - [ ] implement Jacobian-based saliency map described in [This paper](https://arxiv.org/abs/1511.07528)
+
+      - [ ] All methods mentioned above need the architecture of network, however, recently, there is a black-box attack method, described in [this paper](https://arxiv.org/abs/1602.02697) 

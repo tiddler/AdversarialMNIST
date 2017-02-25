@@ -162,6 +162,9 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
   versus_fig = plt.figure(figsize=(9, 40))
 
   # iter over each img
+
+  # in case user pass in a str 
+  target_class = int(target_class)
   for img_index in range(0, img_list.shape[0]):
     adversarial_img = img_list[img_index: img_index+1].copy()
     adversarial_label = np.zeros((1, 10))
@@ -189,8 +192,9 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
     ax1.imshow(img_list[img_index].reshape([28, 28]), 
               interpolation=None, cmap=plt.cm.gray)
     ax1.title.set_text(
-          'Confidence for 2: ' + '{:.4f}'.format(prob_history[0][2]) 
-          + '\nConfidence for 6: ' + '{:.4f}'.format(prob_history[0][6]))
+        'Confidence for origin: ' + '{:.4f}'.format(np.amax(prob_history[0])) 
+        + '\nConfidence for ' + str(target_class)+ 
+        ': ' + '{:.4f}'.format(prob_history[0][target_class]))
 
     ax2 = versus_fig.add_subplot(10, 3, 3*img_index+2)
     ax2.axis('off')
@@ -203,8 +207,9 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
     ax3.imshow((adversarial_img).reshape([28, 28]), 
                 interpolation=None, cmap=plt.cm.gray)
     ax3.title.set_text(
-          'Confidence for 2: ' + '{:.4f}'.format(prob_history[-1][2]) 
-          + '\nConfidence for 6: ' + '{:.4f}'.format(prob_history[-1][6]))
+        'Confidence for origin: ' + '{:.4f}'.format(np.amax(prob_history[-1]))
+        + '\nConfidence for ' + str(target_class)+ 
+        ': ' + '{:.4f}'.format(prob_history[-1][target_class]))
 
     print("Difference Measure:", 
                       np.sum((adversarial_img - img_list[img_index]) ** 2))
