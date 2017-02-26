@@ -287,41 +287,43 @@ class AdversarialMNIST:
       versus_fig.savefig(save_path + file_name + '_versus.png')
     return np.squeeze(np.array(adversarial_img_list))
   
-  def generate_general_adversarial(self, x=None, target_class=6, 
-                        max_steps=1000, batch_size=50, dropout=0.5):
-    self.x_ad = self.weight_variable([784], name='x_ad')
-    x_ad_image = tf.add(self.x_image, self.x_ad)
-    x_ad_image = tf.clip_by_value(x_ad_image, 0.0, 1.0)
+  # Under construction 
+
+  # def generate_general_adversarial(self, x=None, target_class=6, 
+  #                       max_steps=1000, batch_size=50, dropout=0.5):
+  #   self.x_ad = self.weight_variable([784], name='x_ad')
+  #   x_ad_image = tf.add(self.x_image, self.x_ad)
+  #   x_ad_image = tf.clip_by_value(x_ad_image, 0.0, 1.0)
     
-    # wait to see whether it works
-    temp = self.x_image
-    self.x_image = x_ad_image
+  #   # wait to see whether it works
+  #   temp = self.x_image
+  #   self.x_image = x_ad_image
 
-    l2_weight = 0.02
-    l2_loss = l2_weight * tf.nn.l2_loss(self.x_ad)
-    loss_adversary = self.cross_entropy + l2_loss
-    self.optimizer_adversary = tf.train.AdamOptimizer(learning_rate=1e-4)
-    self.generate_step = self.optimizer_adversary.minimize(loss_adversary, var_list=[self.x_ad])
+  #   l2_weight = 0.02
+  #   l2_loss = l2_weight * tf.nn.l2_loss(self.x_ad)
+  #   loss_adversary = self.cross_entropy + l2_loss
+  #   self.optimizer_adversary = tf.train.AdamOptimizer(learning_rate=1e-4)
+  #   self.generate_step = self.optimizer_adversary.minimize(self.cross_entropy, var_list=[self.x_ad])
 
-    init_list = ['x_ad:0', 'beta1_power:0', 'beta2_power:0', 'x_ad/Adam:0', 'x_ad/Adam_1:0']
-    self.sess.run(tf.variables_initializer([var for var in tf.global_variables() if var.name in init_list]))
+  #   init_list = ['x_ad:0', 'beta1_power:0', 'beta2_power:0', 'x_ad/Adam:0', 'x_ad/Adam_1:0']
+  #   self.sess.run(tf.variables_initializer([var for var in tf.global_variables() if var.name in init_list]))
 
 
-    i = 0
-    for iter in range(0, max_steps):
-      i = (i+batch_size) % len(x)
-      adversarial_label = np.zeros((len(x[i: i+batch_size]), 10))
-      adversarial_label[:, target_class] = 1
-      self.sess.run(self.generate_step, feed_dict={self.x: x[i: i+batch_size],
-                          self.y_: adversarial_label, self.keep_prob: dropout})
-      ad_delta = self.sess.run(self.x_ad)
-      if iter % 100 == 0:
-        print('l2_loss', self.sess.run(l2_loss))
-        print('cross_loss', self.sess.run(self.cross_entropy, feed_dict={self.x: x[i: i+batch_size],
-                          self.y_: adversarial_label, self.keep_prob: dropout}))
-        print('combine_loss', self.sess.run(loss_adversary, feed_dict={self.x: x[i: i+batch_size],
-                          self.y_: adversarial_label, self.keep_prob: dropout}))
+  #   i = 0
+  #   for iter in range(0, max_steps):
+  #     i = (i+batch_size) % len(x)
+  #     adversarial_label = np.zeros((len(x[i: i+batch_size]), 10))
+  #     adversarial_label[:, target_class] = 1
+  #     self.sess.run(self.generate_step, feed_dict={self.x: x[i: i+batch_size],
+  #                         self.y_: adversarial_label, self.keep_prob: dropout})
+  #     ad_delta = self.sess.run(self.x_ad)
+  #     if iter % 100 == 0:
+  #       print('l2_loss', self.sess.run(l2_loss))
+  #       print('cross_loss', self.sess.run(self.cross_entropy, feed_dict={self.x: x[i: i+batch_size],
+  #                         self.y_: adversarial_label, self.keep_prob: dropout}))
+  #       print('combine_loss', self.sess.run(loss_adversary, feed_dict={self.x: x[i: i+batch_size],
+  #                         self.y_: adversarial_label, self.keep_prob: dropout}))
     
-    # wait to see whether it works 
-    self.x_image = temp
-    return np.squeeze(ad_delta)
+  #   # wait to see whether it works 
+  #   self.x_image = temp
+  #   return np.squeeze(ad_delta)
