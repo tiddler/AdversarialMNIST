@@ -33,23 +33,23 @@ class AdversarialMNIST:
     self.x = tf.placeholder(tf.float32, shape=[None, 784])
     self.y_ = tf.placeholder(tf.float32, shape=[None, 10])
 
-    self.W_conv1 = self.weight_variable([5, 5, 1, 32])
-    self.b_conv1 = self.bias_variable([32])
+    self.W_conv1 = self.weight_variable([5, 5, 1, 32], name='layer_conv1_5x5_32/Weights')
+    self.b_conv1 = self.bias_variable([32], name='layer_conv1/Bias')
 
     self.x_image = tf.reshape(self.x, [-1, 28, 28, 1])
     self.h_conv1 = tf.nn.relu(self.conv2d(self.x_image, self.W_conv1) + self.b_conv1)
     self.h_pool1 = self.max_pool_2x2(self.h_conv1)
 
     # Second conv layer with a pool layer
-    self.W_conv2 = self.weight_variable([5, 5, 32, 64])
-    self.b_conv2 = self.bias_variable([64])
+    self.W_conv2 = self.weight_variable([5, 5, 32, 64], name='layer_conv2_5x5x64/Weights')
+    self.b_conv2 = self.bias_variable([64], name='layer_conv2/Bias')
 
     self.h_conv2 = tf.nn.relu(self.conv2d(self.h_pool1, self.W_conv2) + self.b_conv2)
     self.h_pool2 = self.max_pool_2x2(self.h_conv2)
 
     # First Full-connect layer
-    self.W_fc1 = self.weight_variable([7 * 7 * 64, 1024])
-    self.b_fc1 = self.bias_variable([1024])
+    self.W_fc1 = self.weight_variable([7 * 7 * 64, 1024], name='layer_fc1_1024/Weights')
+    self.b_fc1 = self.bias_variable([1024], name='layer_fc1/Bias')
 
     self.h_pool2_flat = tf.reshape(self.h_pool2, [-1, 7*7*64])
     self.h_fc1 = tf.nn.relu(tf.matmul(self.h_pool2_flat, self.W_fc1) + self.b_fc1)
@@ -58,8 +58,8 @@ class AdversarialMNIST:
     self.h_fc1_drop = tf.nn.dropout(self.h_fc1, self.keep_prob)
 
     # Second Full-connect layer
-    self.W_fc2 = self.weight_variable([1024, 10])
-    self.b_fc2 = self.bias_variable([10])
+    self.W_fc2 = self.weight_variable([1024, 10], name='layer_fc2_10/Weights')
+    self.b_fc2 = self.bias_variable([10], name='layer_fc2/Bias')
 
     # output layer
     self.y_conv = tf.matmul(self.h_fc1_drop, self.W_fc2) + self.b_fc2
@@ -70,15 +70,19 @@ class AdversarialMNIST:
     self.sess = tf.InteractiveSession()
     self.mnist = None
 
-  def weight_variable(self, shape):
+  def show_trainable_variables(self):
+    for var in tf.trainable_variables():
+      print(var.name)
+
+  def weight_variable(self, shape, name):
     """Create a weight variable with appropriate initialization."""
     initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
+    return tf.Variable(initial, name=name)
 
-  def bias_variable(self, shape):
+  def bias_variable(self, shape, name):
     """Create a bias variable with appropriate initialization."""
     initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
+    return tf.Variable(initial, name=name)
 
   def conv2d(self, x, W):
     """simple conv2d layer"""
@@ -223,6 +227,8 @@ class AdversarialMNIST:
         gradient = img_gradient.eval(
             {self.x: adversarial_img, self.y_: adversarial_label, self.keep_prob: 1.0})
         adversarial_img -= eta * gradient
+        # limit the value to [0, 1]
+        adversarial_img = np.clip(adversarial_img, 0, 1)
         iter_num += 1
       adversarial_img_list.append(adversarial_img)
       

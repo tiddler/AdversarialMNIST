@@ -61,6 +61,18 @@ from AdversarialMNIST.AdversarialMNIST import AdversarialMNIST
 
 # create a object, the graph will be initialized
 model = AdversarialMNIST()
+# show the graph structure
+model.show_trainable_variables()
+"""
+  layer_conv1_5x5_32/Weights:0
+  layer_conv1/Bias:0
+  layer_conv2_5x5x64/Weights:0
+  layer_conv2/Bias:0
+  layer_fc1_1024/Weights:0
+  layer_fc1/Bias:0
+  layer_fc2_10/Weights:0
+  layer_fc2/Bias:0
+"""
 # load previous model
 model.load_model(model_path='../model/MNIST.ckpt')
 # train a new model by MNIST and dump the model to target place
