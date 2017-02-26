@@ -104,6 +104,7 @@ def build_graph():
     tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
   
   sess = tf.InteractiveSession()
+  sess.run(tf.global_variables_initializer())
   return sess, x, y_, y_pred, keep_prob, cross_entropy
 
 def generate_adversarial(model_path, img_list, target_class, eta=0.001, 
@@ -113,14 +114,6 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
     into helper function
 
   Args:
-    tensor_in: `Tensor`, input tensor.
-    other_tensor_in: `Tensor`, same shape as `tensor_in`, other input tensor.
-    my_param: `float`, coefficient for `tensor_in`.
-    other_param: `float`, coefficient for `other_tensor_in`.
-    output_collections: `tuple` of `string`s, name of the collection to
-                        collect result of this op.
-    name: `string`, name of the operation.
-
     model_path: `string`, the path to previous model
     img_list: `string`, the img list that need to generate adversarial images
     target_class: `int`, the wanted label
@@ -143,7 +136,6 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
   sess, x, y_, y_pred, keep_prob, cross_entropy = build_graph()
 
   # load model from `model_path`
-  sess.run(tf.global_variables_initializer())
   tf.train.Saver().restore(sess, model_path)
   print('load model from', model_path)
   
@@ -158,8 +150,9 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
   adversarial_img_list = list()
 
   # generate versus figure
-  sns.set_style('white')
-  versus_fig = plt.figure(figsize=(9, 40))
+  if verbose == 1:
+    sns.set_style('white')
+    versus_fig = plt.figure(figsize=(9, 40))
 
   # iter over each img
 
@@ -176,7 +169,7 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
     while confidence < threshold:
       probabilities_val = probabilities.eval(feed_dict=
                         {x: adversarial_img, keep_prob: 1.0}, session=sess)
-      confidence = probabilities_val[:, 6]
+      confidence = probabilities_val[:, target_class]
       prob_history.append(probabilities_val[0])
       
       gradient = img_gradient.eval(
@@ -185,37 +178,38 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
       iter_num += 1
     print('generate adversarial image after', iter_num, 'iterations')
 
-    # generate versus figure
+    if verbose == 1:
+      # generate versus figure
 
-    ax1 = versus_fig.add_subplot(10, 3, 3*img_index+1)
-    ax1.axis('off')
-    ax1.imshow(img_list[img_index].reshape([28, 28]), 
-              interpolation=None, cmap=plt.cm.gray)
-    ax1.title.set_text(
-        'Confidence for origin: ' + '{:.4f}'.format(np.amax(prob_history[0])) 
-        + '\nConfidence for ' + str(target_class)+ 
-        ': ' + '{:.4f}'.format(prob_history[0][target_class]))
-
-    ax2 = versus_fig.add_subplot(10, 3, 3*img_index+2)
-    ax2.axis('off')
-    ax2.imshow((adversarial_img - img_list[img_index]).reshape([28, 28]),
+      ax1 = versus_fig.add_subplot(10, 3, 3*img_index+1)
+      ax1.axis('off')
+      ax1.imshow(img_list[img_index].reshape([28, 28]), 
                 interpolation=None, cmap=plt.cm.gray)
-    ax2.title.set_text('Delta')
+      ax1.title.set_text(
+          'Confidence for origin: ' + '{:.4f}'.format(np.amax(prob_history[0])) 
+          + '\nConfidence for ' + str(target_class)+ 
+          ': ' + '{:.4f}'.format(prob_history[0][target_class]))
 
-    ax3 = versus_fig.add_subplot(10, 3, 3*img_index+3)
-    ax3.axis('off')
-    ax3.imshow((adversarial_img).reshape([28, 28]), 
-                interpolation=None, cmap=plt.cm.gray)
-    ax3.title.set_text(
-        'Confidence for origin: ' + '{:.4f}'.format(np.amax(prob_history[-1]))
-        + '\nConfidence for ' + str(target_class)+ 
-        ': ' + '{:.4f}'.format(prob_history[-1][target_class]))
+      ax2 = versus_fig.add_subplot(10, 3, 3*img_index+2)
+      ax2.axis('off')
+      ax2.imshow((adversarial_img - img_list[img_index]).reshape([28, 28]),
+                  interpolation=None, cmap=plt.cm.gray)
+      ax2.title.set_text('Delta')
+
+      ax3 = versus_fig.add_subplot(10, 3, 3*img_index+3)
+      ax3.axis('off')
+      ax3.imshow((adversarial_img).reshape([28, 28]), 
+                  interpolation=None, cmap=plt.cm.gray)
+      ax3.title.set_text(
+          'Confidence for origin: ' + '{:.4f}'.format(np.amax(prob_history[-1]))
+          + '\nConfidence for ' + str(target_class)+ 
+          ': ' + '{:.4f}'.format(prob_history[-1][target_class]))
 
     print("Difference Measure:", 
                       np.sum((adversarial_img - img_list[img_index]) ** 2))
     adversarial_img_list.append(adversarial_img)
 
-    if verbose != 0:
+    if verbose == 1:
       sns.set_style('whitegrid')
       colors_list = sns.color_palette("Paired", 10)
       # generate Iteration figure
@@ -232,7 +226,8 @@ def generate_adversarial(model_path, img_list, target_class, eta=0.001,
       ax.set_xlabel('Iteration')
       ax.set_ylabel('Prediction Confidence')
       fig.savefig(save_path + file_name + str(img_index) + '_iter.png')
-
-  versus_fig.tight_layout()
-  versus_fig.savefig(save_path + file_name + '_versus.png')
-  return np.array(adversarial_img_list)
+  
+  if verbose == 1:
+    versus_fig.tight_layout()
+    versus_fig.savefig(save_path + file_name + '_versus.png')
+  return np.squeeze(np.array(adversarial_img_list))
