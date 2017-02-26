@@ -118,24 +118,22 @@ class AdversarialMNIST:
     self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
     self.sess.run(tf.global_variables_initializer())
 
-    if x and y:
-      for i in range(0, len(x), batch_size):
+    if x is not None and y is not None:
+      for i in range(0, x.shape[0], batch_size):
         batch = (x[i: i+batch_size], y[i: i+batch_size])
-        if i % 500 == 0:
+        if i % 1000 == 0:
           train_accuracy = self.accuracy.eval(feed_dict={
               self.x:batch[0], self.y_: batch[1], self.keep_prob: 1.0})
           print('step %d, training accuracy %g' % (i, train_accuracy))
         train_step.run(feed_dict={self.x: batch[0],
                         self.y_: batch[1], self.keep_prob: dropout})
 
-      print('test accuracy %g' % self.accuracy.eval(feed_dict={
-          self.x: self.mnist.test.images, self.y_: self.mnist.test.labels, self.keep_prob: 1.0}))
     else:
       if self.mnist == None:
         self.load_mnist()
       for i in range(max_steps):
         batch = self.mnist.train.next_batch(batch_size)
-        if i % 100 == 0:
+        if i % 500 == 0:
           train_accuracy = self.accuracy.eval(feed_dict={
               self.x:batch[0], self.y_: batch[1], self.keep_prob: 1.0})
           print('step %d, training accuracy %g'%(i, train_accuracy))
@@ -207,6 +205,8 @@ class AdversarialMNIST:
 
     # iter over each img
     for img_index in range(0, img_list.shape[0]):
+      if img_index % 100 == 0:
+        print('generate for', img_index, 'images')
       adversarial_img = img_list[img_index: img_index+1].copy()
       adversarial_label = np.zeros((1, 10))
       adversarial_label[:, target_class] = 1
