@@ -73,16 +73,20 @@ model.show_trainable_variables()
   layer_fc2_10/Weights:0
   layer_fc2/Bias:0
 """
-# load previous model
-model.load_model(model_path='../model/MNIST.ckpt')
-# train a new model by MNIST and dump the model to target place
+# Option 1: train a new model by MNIST and dump the model to target place *use default dataset
 model.fit(learning_rate=1e-4, max_steps=20000, dropout=0.5, model_path='../model/MNIST.ckpt')
-# train a new model by given dataset
+
+# Option 2: load previous model
+model.load_model(model_path='../model/MNIST.ckpt')
+
+# Option 3: train a new model by given dataset *use customized dataset
 model.fit(x=new_train_images, y=new_train_labels, learning_rate=1e-4, 
           max_steps=5000, dropout=0.5, model_path='../model/MNIST_NEW.ckpt')
+
 # make a prediction for images
 # result is a tuple, if prob == True, result[0] is the label, result[1] is the probability
-result = model.predict(ad_images, prob=True)
+result = model.predict(images, prob=True)
+
 # generate adversarial images
 # you can assign any target_class that you want to fool network with desired confidence
 # if verbose is 1, it will generate all figures for report
@@ -111,7 +115,7 @@ You can find iteration processes in the `img` folder
 - [x] Read [Karpathy's blog](http://karpathy.github.io/2015/03/30/breaking-convnets/)
 - [x] Read paper [Deep Neural Networks are Easily Fooled](https://arxiv.org/abs/1412.1897) and [Explaining and Harnessing Adversarial Examples](https://arxiv.org/abs/1412.6572)
 - [x] Go through all details in [Deep MNIST for Experts](https://www.tensorflow.org/get_started/mnist/pros)
-- [x] Here is a [torch implement](https://github.com/e-lab/torch-toolbox/tree/master/Adversarial) for OVERFEAR network (Not so useful)
+- [x] Here is a [torch implement](https://github.com/e-lab/torch-toolbox/tree/master/Adversarial) for OVERFEAT network (Not so useful)
 - [x] Time to code ~
       * [x] Train a common CNN for MNIST
       * [x] generate adversarial images to misclassify any examples of ‘2’ as ‘6’
