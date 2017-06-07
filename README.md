@@ -84,8 +84,8 @@ model.fit(x=new_train_images, y=new_train_labels, learning_rate=1e-4,
           max_steps=5000, dropout=0.5, model_path='../model/MNIST_NEW.ckpt')
 
 # make a prediction for images
-# result is a tuple, if prob == True, result[0] is the label, result[1] is the probability
-result = model.predict(images, prob=True)
+# return predictions and probabilities for input images. Here shows the results for ordinary prediction 
+normal_pred,normal_prob = model.predict(images, prob=True)
 
 # generate adversarial images
 # you can assign any target_class that you want to fool network with desired confidence
@@ -93,6 +93,8 @@ result = model.predict(images, prob=True)
 ad_images = model.generate_adversarial(img_list=img_list, 
                                        target_class=7, eta=0.1, threshold=0.99, 
                               		save_path='../img/', file_name='adversarial', verbose=0)
+#Predictions and probabilites of adv images                                  
+adv_pred,adv_prob = model.predict(ad_images, prob=True)
 ```
 
 Previous Usage:
